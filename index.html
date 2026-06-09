@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Smart Cooking Projection Interface — Built From Scratch</title>
+<meta name="description" content="An original from-scratch build of a projected cooking interface: a tracking system, vision language model and projector turn the kitchen counter into an interactive recipe surface." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --accent:#ea580c; --accent-soft:#fdeadd; --ink:#16201f; --muted:#5d6b69;
+    --line:#dfe5e3; --bg:#fbfcfb; --card:#ffffff;
+    --serif:'Fraunces',Georgia,serif; --sans:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:860px;margin:0 auto;padding:0 28px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);padding:.1em .4em;border-radius:4px;color:#c2470a}
+  h1,h2,h3{font-family:var(--serif);font-weight:500;line-height:1.15;letter-spacing:-.01em}
+  /* Header */
+  header.hero{padding:88px 0 56px;border-bottom:1px solid var(--line)}
+  .eyebrow{font-family:var(--mono);font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 22px}
+  h1{font-size:clamp(2.6rem,6vw,4.1rem);margin:0 0 18px}
+  .lede{font-size:1.22rem;color:var(--muted);max-width:62ch;margin:0 0 28px}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;font-size:.82rem}
+  .chip{font-family:var(--mono);font-size:.72rem;letter-spacing:.04em;border:1px solid var(--line);border-radius:999px;padding:5px 12px;color:var(--muted);background:var(--card)}
+  /* Sections */
+  section{padding:54px 0;border-bottom:1px solid var(--line)}
+  .kicker{font-family:var(--mono);font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+  h2{font-size:clamp(1.7rem,3.4vw,2.3rem);margin:0 0 20px}
+  h3{font-size:1.2rem;margin:0 0 6px}
+  p{margin:0 0 18px;max-width:68ch}
+  .muted{color:var(--muted)}
+  /* Stack grid */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:8px}
+  .tool{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .tool .t{font-family:var(--mono);font-size:.78rem;color:var(--accent);letter-spacing:.04em;margin-bottom:8px}
+  .tool h3{font-size:1.05rem;font-family:var(--sans);font-weight:600;margin-bottom:6px}
+  .tool p{font-size:.92rem;color:var(--muted);margin:0}
+  /* Pipeline / modules */
+  ol.flow{counter-reset:s;list-style:none;padding:0;margin:24px 0 0}
+  ol.flow li{position:relative;padding:18px 0 18px 56px;border-top:1px solid var(--line)}
+  ol.flow li:before{counter-increment:s;content:counter(s,decimal-leading-zero);position:absolute;left:0;top:18px;font-family:var(--mono);font-size:.8rem;color:var(--accent);border:1px solid var(--line);border-radius:8px;width:38px;height:38px;display:grid;place-items:center;background:var(--card)}
+  ol.flow li h3{font-family:var(--sans);font-size:1.02rem;font-weight:600;margin:0 0 4px}
+  ol.flow li p{margin:0;font-size:.93rem;color:var(--muted)}
+  .tag{display:inline-block;font-family:var(--mono);font-size:.68rem;padding:2px 7px;border-radius:5px;margin-left:8px;vertical-align:middle}
+  .tag.on{background:#e6f7ec;color:#1c7a43}
+  .tag.off{background:#fdecea;color:#b23b2c}
+  /* Callout */
+  .callout{background:var(--accent-soft);border:1px solid #f7cba8;border-radius:14px;padding:24px 26px;margin-top:8px}
+  .callout p:last-child{margin:0}
+  /* Reflection list */
+  ul.learn{list-style:none;padding:0;margin:8px 0 0}
+  ul.learn li{padding:14px 0 14px 30px;border-top:1px solid var(--line);position:relative;color:var(--muted);max-width:68ch}
+  ul.learn li:before{content:"→";position:absolute;left:0;color:var(--accent);font-family:var(--mono)}
+  ul.learn li b{color:var(--ink);font-weight:600}
+  /* Footer */
+  footer{padding:48px 0 80px}
+  .credit{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px}
+  .credit .k{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  footer .fine{font-size:.8rem;color:var(--muted);margin-top:22px;text-align:center}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">From-Scratch Build · Human–Computer Interaction</p>
+    <h1>Smart Cooking Projection Interface</h1>
+    <p class="lede">A kitchen counter that becomes an interactive recipe. Instead of squinting at a phone with messy hands, you cook while the next step is projected directly onto the workspace — and a vision model watches the counter to keep up with you. I built this from scratch to learn how tracking, projection and vision language models combine into a tangible interface.</p>
+    <div class="meta">
+      <span class="chip">Motion tracking</span><span class="chip">Projection</span><span class="chip">Vision LLM</span>
+      <span class="chip">Agent simulation</span><span class="chip">Audio feedback</span>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <p class="kicker">What it is</p>
+    <h2>The recipe lives on the counter</h2>
+    <p>This is a <b>tangible user interface</b> for cooking. A tracking system knows where your tools and ingredients are, an agent-based program holds the recipe state, and a projector draws instructions, timers and highlights straight onto the same surface you're working on. A vision language model interprets what the camera sees in the kitchen, so the interface can react to the real scene rather than a fixed script.</p>
+    <p>The premise that drew me in: text recipes force you to context-switch constantly — read, look away, cook, look back. Projecting the guidance into the workspace removes that gap. I wanted to build the plumbing that makes the counter itself the screen.</p>
+    <div class="callout">
+      <p><b>The core idea I wanted to learn:</b> ambient interfaces win by being where your attention already is. The technical challenge is making the projected layer agree with the physical layer — the recipe step has to land next to the bowl it's talking about.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="kicker">The stack</p>
+    <h2>Tools under the hood</h2>
+    <p class="muted">The point of this rebuild was the toolchain. Here is what each piece actually does in the system.</p>
+    <div class="grid">
+      <div class="tool"><div class="t">tracking</div><h3>Motion capture</h3><p>Locates tangible objects on the counter — tools, containers, markers — and reports their positions to the rest of the system.</p></div>
+      <div class="tool"><div class="t">middleware</div><h3>ROS bridge</h3><p>Carries tracking data between components and forwards it over UDP to the projection engine.</p></div>
+      <div class="tool"><div class="t">logic</div><h3>Agent-based program</h3><p>Holds the recipe state machine — which step you're on — and decides what the projector should show next.</p></div>
+      <div class="tool"><div class="t">perception</div><h3>Vision language model</h3><p>Interprets the camera view of the kitchen so the interface can read and reason about the real cooking scene.</p></div>
+      <div class="tool"><div class="t">display</div><h3>Projector</h3><p>Paints the recipe steps, timers and highlights onto the cooking surface, aligned with the physical workspace.</p></div>
+      <div class="tool"><div class="t">feedback</div><h3>Audio cues</h3><p>Spoken and tonal feedback complements the projection, so you get a nudge even when you're not looking down.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="kicker">Pipeline</p>
+    <h2>From the counter to a projected step</h2>
+    <p>Each moment of cooking flows through the same sense-interpret-project loop.</p>
+    <ol class="flow">
+      <li><h3>Track <span class="tag on">live</span></h3><p>The tracking system reports where objects are on the counter.</p></li>
+      <li><h3>See <span class="tag on">live</span></h3><p>The vision model interprets the camera view to understand the current scene.</p></li>
+      <li><h3>Decide <span class="tag on">live</span></h3><p>The agent program advances the recipe state and picks the next instruction.</p></li>
+      <li><h3>Project <span class="tag on">live</span></h3><p>The relevant step, timer or highlight is projected onto the workspace.</p></li>
+      <li><h3>Speak <span class="tag on">live</span></h3><p>Audio feedback reinforces the visual cue for hands-busy moments.</p></li>
+      <li><h3>Advance <span class="tag on">live</span></h3><p>As you finish a step, the loop repeats with the next one.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="kicker">Why it works</p>
+    <h2>What projecting the recipe actually changes</h2>
+    <p>The interesting claim behind this interface is that moving the recipe off a screen and onto the counter measurably helps people cook:</p>
+    <ul class="learn">
+      <li><b>Fewer interruptions:</b> the next step is already in your field of view, so you stop less often to check what's next.</li>
+      <li><b>More confidence:</b> seeing guidance anchored to your real ingredients makes it easier to trust you're doing the right thing.</li>
+      <li><b>Better focus:</b> without the read-look-away cycle, attention stays on the food instead of the device.</li>
+    </ul>
+    <p class="muted" style="margin-top:18px">In my rebuild I concentrated on the tracking-to-projection loop, then layered the vision model on top so the interface could respond to the real scene rather than a fixed sequence.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="kicker">Reflection</p>
+    <h2>What rebuilding it taught me</h2>
+    <ul class="learn">
+      <li><b>The best interface disappears.</b> Projecting into the workspace beats any app because it removes the device entirely.</li>
+      <li><b>Vision models are glue, not magic.</b> Used as a perception layer, an LLM that can see turns a rigid script into something that reacts to reality.</li>
+      <li><b>Alignment is everything.</b> A step projected an inch off from the bowl it describes breaks the illusion instantly.</li>
+      <li><b>Multimodal feedback covers blind spots.</b> Audio carries the message in the moments your eyes are on the knife, not the counter.</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="credit">
+      <div class="k">About this build</div>
+      <p style="margin:0">An original, from-scratch build by <b>Andrea</b> — written to learn how object tracking, projection and a vision language model combine into an ambient cooking interface. Plain HTML/CSS, deployed on GitHub Pages.</p>
+    </div>
+    <p class="fine">Built from scratch by Andrea · one of an ongoing series of learning builds.</p>
+  </div>
+</footer>
+</body>
+</html>
